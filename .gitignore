@@ -1,0 +1,11 @@
+# Data files (contain personal bookmarks)
+*.json
+*.html
+report.md
+bookmarks_organized.md
+分类预览.md
+
+# Python
+__pycache__/
+*.pyc
+.env
