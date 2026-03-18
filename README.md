@@ -1,8 +1,8 @@
 English | [简体中文](README_CN.md)
 
-# Bookmark Organize — Browser Bookmark Merge, Dedup, Link Check & Classify
+# Bookmark Organize — AI-Assisted Browser Bookmark Organizer
 
-Merge bookmarks from Chrome, Edge, and HTML exports. Auto-deduplicate, check for dead links, classify into categories, and output browser-importable bookmark files.
+Merge bookmarks from Chrome, Edge, and HTML exports. Use AI-assisted classification together with deterministic cleanup to deduplicate, check dead links, organize categories, and output browser-importable bookmark files.
 
 ## Features
 
