@@ -2,166 +2,147 @@
 
 # Bookmark Organize
 
-> 导出浏览器书签，先在本地完成合并、去重、检查与整理，再可选地交给 ChatGPT / Claude / Gemini / Codex 等通用大模型优化分类方案。
+> 先在本地完成书签合并、去重、链接检查和整理，再可选地交给 ChatGPT / Claude / Gemini / Codex 做最后的分类复核。
 
-这个项目适合那些书签来源很多、已经积累得很乱的人。它**不是**一个必须绑定 LLM API 才能工作的仓库。默认工作流是本地、确定性的。AI 只是一个可选增强层，最适合拿来做分类方案优化、可疑项复核、或者帮助你重新梳理目录结构。
+这里也先把原理说清楚：
 
-## 这个项目本质上是做什么的
+- 浏览器书签本身并没有一套真正成熟、强力的内置 AI 分类工作流
+- 这个项目也不是必须依赖 LLM API 才能使用
+- 默认工作流是本地、确定性、可复核的
 
-它帮你完成这几件事：
+AI 在这里是可选增强层，不是前置条件。
 
-1. 把 Chrome、Edge、HTML 导出里的书签合并起来
-2. 用 URL 标准化做去重
-3. 检查死链、可疑链接和被墙链接
-4. 重新整理分类结构
-5. 输出浏览器可以重新导入的结果
+它真正的价值是：
 
-所以和另外几个项目相比，它其实更偏“本地确定性整理工具”而不是“AI 主导项目”：
-
-- 核心工作由本地脚本完成
-- AI 只是额外增强层
-- 正常使用不需要 API Key
+1. 合并多来源书签
+2. 标准化 URL 并去重
+3. 检查死链和可疑链接
+4. 生成可重新导入浏览器的结果
+5. 最后可选地交给强模型做结构复核
 
 ## 要不要 API Key？
 
-**不需要。**
+不需要。
 
-这个项目完全可以在没有任何 LLM API Key 的情况下正常使用。
+这个项目在没有任何 LLM API Key 的情况下也能完整使用。  
+如果你想把最终结果再优化一遍，才建议把结果文件交给 ChatGPT / Claude / Gemini / Codex 做辅助复核。
 
-如果你想进一步优化结果，也可以把导出的 Markdown 报告交给：
+## 零基础最快上手
 
-- ChatGPT
-- Claude
-- Gemini
-- Codex
-- Claude Code
-- OpenCode
-
-让它帮你看分类是否合理、哪些链接可疑、目录结构还能怎么优化。但这一步是可选增强，不是前置条件。
-
-## 适合谁用
-
-如果你有这些需求，这个项目就很适合：
-
-- Chrome、Edge、旧 HTML 导出里都有书签
-- 想得到一个更干净、可重新导入浏览器的书签树
-- 不想把死链和垃圾书签一直堆着不管
-- 想要比“手工拖文件夹”更强的整理工作流
-
-## 小白使用流程
-
-### 1. 安装依赖
+### Step 1：安装依赖
 
 ```bash
 pip install aiohttp
 ```
 
-只有 `test_links.py` 依赖 `aiohttp`，其他步骤大多是标准库。
-
-### 2. 合并书签
+### Step 2：合并书签
 
 ```bash
 python parse_bookmarks.py
 ```
 
-它会从这些来源读取：
-
-- Chrome 默认配置文件
-- Edge 默认配置文件
-- 你手动指定的 HTML 导出文件
-
-主要输出：
+跑完后你会得到：
 
 - `merged_bookmarks.json`
 
-### 3. 可选：检测链接
+### Step 3：可选检查链接
 
 ```bash
 python test_links.py
 ```
 
-它会检查链接是正常、被拒绝、已失效、可疑，还是特殊协议。
-
-主要输出：
+跑完后你会得到：
 
 - `test_results.json`
 
-### 4. 整理书签
+### Step 4：整理书签
 
 ```bash
 python organize_bookmarks.py
 ```
 
-主要输出：
+跑完后你会得到：
 
-- `bookmarks_organized.html` —— 可重新导入浏览器
-- `bookmarks_organized.md` —— 可读性更好的 Markdown 结果
-- `report.md` —— 统计和复核报告
+- `bookmarks_organized.html`
+- `bookmarks_organized.md`
+- `report.md`
 
-## 推荐的 AI 复核方式
+## 像看截图一样的使用流程
 
-这个仓库本身不依赖 AI，但在“最后复核”阶段很适合配合强模型一起用。
+### 第一步，你先跑什么
 
-实用流程是：
+```bash
+python parse_bookmarks.py
+```
 
-1. 先跑本地脚本
-2. 打开 `bookmarks_organized.md` 或 `report.md`
-3. 把它交给 ChatGPT / Claude / Gemini / Codex / Claude Code / OpenCode
-4. 问它：
-   - 哪些分类太宽了？
-   - 哪些书签可能放错了？
-   - 哪些可疑链接应该删掉？
-   - 目录树还能怎么简化？
+你可以把这一阶段理解成“第一张截图应该看到的是”：
 
-然后你再回到本地脚本规则或人工结果里做调整。
+- Chrome、Edge、HTML 导出的书签已经合并
+- 重复项已经按 URL 标准化逻辑折叠
+- 浏览器里还没有真正导入任何新结果
 
-## 为什么它比“纯 AI 书签整理”更稳
+### 第二步，你再跑什么
 
-纯 AI 整理经常有这些问题：
+```bash
+python test_links.py
+```
 
-- 不会认真处理死链
-- 识别不出只是带追踪参数的重复 URL
-- 看起来分类挺漂亮，但导入结构不好用
-- 下次再整理时很难复现
+这一步不是强制，但如果你的书签积累很久了，很值得跑。
 
-这个项目的优势在于，它先把基础层做成确定性的：
+### 第三步，你最后跑什么
 
-- 合并
-- 标准化
-- 去重
-- 链接检测
-- 导出
+```bash
+python organize_bookmarks.py
+```
 
-然后 AI 只作为附加增强层，而不是唯一依据。
+这时你会得到三份关键结果：
+
+- 可重新导入浏览器的 HTML
+- 可读的 Markdown 树
+- 一份汇总报告
+
+### 第四步，如果你想让 AI 帮你复核，交什么给它
+
+建议交：
+
+- `bookmarks_organized.md`
+- `report.md`
+
+可以直接问：
+
+- 哪些分类太宽？
+- 哪些书签看起来放错地方？
+- 哪些可疑链接应该删掉？
+- 目录树还能怎么简化？
+
+### 第五步，真正导回浏览器的是哪个文件
+
+真正拿去浏览器导入的是：
+
+- `bookmarks_organized.html`
+
+这才是最终浏览器可用的产物。
+
+## 为什么它不是 API-first
+
+这个仓库的设计取向就是保守和稳定：
+
+- 重要工作由本地脚本完成
+- AI 只负责最后的复核和优化
+- 你不需要先解决 API 账号、额度、账单问题
 
 ## 重要文件
 
 | 文件 | 作用 |
 | --- | --- |
-| `parse_bookmarks.py` | 合并并去重多个书签来源 |
-| `test_links.py` | 检测链接状态与可疑站点 |
+| `parse_bookmarks.py` | 合并并去重多个来源 |
+| `test_links.py` | 检查链接可用性和可疑站点 |
 | `organize_bookmarks.py` | 最终分类整理与导出 |
 | `merged_bookmarks.json` | 合并后的书签数据 |
-| `test_results.json` | 链接检测结果 |
-| `bookmarks_organized.html` | 可重新导入浏览器的输出 |
-| `bookmarks_organized.md` | 可读性更好的 Markdown 输出 |
-| `report.md` | 汇总与复核报告 |
-
-## 注意事项
-
-- `parse_bookmarks.py` 里 HTML 导入路径可能需要根据你自己的电脑修改
-- `test_links.py` 最好在 Clash Verge 或其他代理可用时运行，这样被墙站点的判断更准确
-- 分类本身仍然是启发式的，所以最好做一次复核
-- 这个工具很适合定期整理，比如每月或每季度跑一次
-
-## AI 编程助手支持
-
-仓库内包含：
-
-- `AGENTS.md`
-- `CLAUDE.md`
-
-所以很适合接入 Codex、Claude Code、OpenCode、OpenClaw 这类 agent 工作流。
+| `test_results.json` | 链接检查结果 |
+| `bookmarks_organized.html` | 浏览器可导入结果 |
+| `bookmarks_organized.md` | 可读复核结果 |
+| `report.md` | 汇总报告 |
 
 ## 开源协议
 

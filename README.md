@@ -2,166 +2,146 @@ English | [简体中文](README_CN.md)
 
 # Bookmark Organize
 
-> Export bookmarks, clean and deduplicate them locally, and optionally use ChatGPT / Claude / Gemini / Codex or another frontier LLM to improve the final category plan.
+> Merge bookmarks locally, deduplicate and check links, then optionally let ChatGPT / Claude / Gemini / Codex review the final structure.
 
-This project is a bookmark cleanup and organization workflow for people who have accumulated bookmarks from multiple browsers and exports. It is **not** a repo that depends on an LLM API to work. The default workflow is local and deterministic. AI is optional and is most useful for reviewing the final structure, improving category design, or spotting suspicious classifications.
+Important clarification:
 
-## What this project actually does
+- browsers do **not** really provide a strong built-in AI bookmark classification workflow
+- this project is not meant to force an LLM API
+- the default workflow is local, deterministic, and review-friendly
 
-It helps you:
+AI is optional here.
+The real value is:
 
-1. merge bookmarks from Chrome, Edge, and HTML exports
-2. deduplicate them with URL normalization
-3. check for dead or suspicious links
-4. classify them into a cleaner structure
-5. export browser-importable results
-
-So compared with the other projects, this one is even more conservative:
-
-- local scripts do the heavy lifting
-- AI is an optional refinement layer
-- no API key is required for normal use
+1. merge bookmark sources
+2. normalize and deduplicate URLs
+3. check broken or suspicious links
+4. produce an importable result
+5. optionally let a strong model review the final tree
 
 ## Do I need an API key?
 
 No.
 
-This project works perfectly fine without any LLM API key.
+This project works without any LLM API key.
+If you want, you can still send the final Markdown report to ChatGPT / Claude / Gemini / Codex for structural review.
 
-If you want, you can still take the exported Markdown report and ask:
+## Zero-to-first-result workflow
 
-- ChatGPT
-- Claude
-- Gemini
-- Codex
-- Claude Code
-- OpenCode
-
-for better category design, suspicious-link review, or manual reorganization suggestions. But that is optional.
-
-## Who this is for
-
-This project is useful if you:
-
-- have bookmarks spread across Chrome, Edge, and old HTML exports
-- want a cleaner and importable bookmark tree
-- want dead-link detection before keeping old junk forever
-- want a workflow stronger than random manual folder dragging in the browser
-
-## Beginner workflow
-
-### 1. Install dependency
+### Step 1. Install dependency
 
 ```bash
 pip install aiohttp
 ```
 
-Only `test_links.py` needs `aiohttp`. The rest is mostly standard library.
-
-### 2. Merge bookmarks
+### Step 2. Merge bookmarks
 
 ```bash
 python parse_bookmarks.py
 ```
 
-This reads bookmarks from:
-
-- Chrome default profile
-- Edge default profile
-- a manually specified HTML export path
-
-Main output:
+You should then get:
 
 - `merged_bookmarks.json`
 
-### 3. Optionally test links
+### Step 3. Optionally check links
 
 ```bash
 python test_links.py
 ```
 
-This checks whether links are alive, blocked, dead, or suspicious.
-
-Main output:
+You should then get:
 
 - `test_results.json`
 
-### 4. Organize bookmarks
+### Step 4. Organize bookmarks
 
 ```bash
 python organize_bookmarks.py
 ```
 
-Main outputs:
+You should then get:
 
-- `bookmarks_organized.html` — browser-importable bookmarks file
-- `bookmarks_organized.md` — readable Markdown version
-- `report.md` — statistics and review report
+- `bookmarks_organized.html`
+- `bookmarks_organized.md`
+- `report.md`
 
-## Recommended AI-assisted review
+## Screenshot-style beginner walkthrough
 
-This repo does not require AI, but it can benefit from strong general-purpose models at the review stage.
+### What you run first
 
-A practical workflow is:
+```bash
+python parse_bookmarks.py
+```
 
-1. Run the local scripts
-2. Open `bookmarks_organized.md` or `report.md`
-3. Send it to ChatGPT / Claude / Gemini / Codex / Claude Code / OpenCode
-4. Ask questions like:
-   - which categories look too broad?
-   - which bookmarks may belong elsewhere?
-   - which suspicious links should be removed?
-   - how should the tree be simplified?
+Think of the first “result screen” as:
 
-Then you adjust the script rules or manually edit the result.
+- your Chrome, Edge, and HTML exports are merged
+- duplicates are already normalized and collapsed
+- no browser import has happened yet
 
-## Why this can be better than naive AI-only bookmark sorting
+### What you run second
 
-Pure AI-only sorting often has problems:
+```bash
+python test_links.py
+```
 
-- it may ignore dead links
-- it may miss duplicate URLs with different tracking params
-- it may produce nice-looking categories but poor importable structure
-- it may be hard to reproduce later
+This is optional but recommended if your bookmarks are old or messy.
 
-This project keeps the foundation deterministic:
+### What you run third
 
-- merge
-- normalize
-- deduplicate
-- link-check
-- export
+```bash
+python organize_bookmarks.py
+```
 
-Then AI becomes an optional improvement layer instead of the only source of truth.
+Now you have:
+
+- an importable HTML file
+- a readable Markdown tree
+- a report for review
+
+### What you optionally send to AI
+
+If you want better category refinement, send:
+
+- `bookmarks_organized.md`
+- or `report.md`
+
+Good questions:
+
+- which categories are too broad?
+- which bookmarks look misplaced?
+- which suspicious links should be removed?
+- how should I simplify the tree?
+
+### What you import back to the browser
+
+The file to import is:
+
+- `bookmarks_organized.html`
+
+That is the final browser-ready output.
+
+## Why this is not API-first
+
+This repo is intentionally conservative:
+
+- local scripts do the important work
+- AI is a refinement layer
+- you do not need a provider key just to get value
 
 ## Important files
 
 | File | Purpose |
 | --- | --- |
-| `parse_bookmarks.py` | merge and deduplicate bookmark sources |
-| `test_links.py` | link availability and suspicious-site checks |
-| `organize_bookmarks.py` | final category organization and export |
+| `parse_bookmarks.py` | merge and deduplicate sources |
+| `test_links.py` | check link availability and suspicious sites |
+| `organize_bookmarks.py` | final organization and export |
 | `merged_bookmarks.json` | merged bookmark data |
 | `test_results.json` | link-check result |
 | `bookmarks_organized.html` | browser-importable output |
-| `bookmarks_organized.md` | readable Markdown export |
-| `report.md` | summary and review report |
-
-## Notes
-
-- The HTML import path in `parse_bookmarks.py` may need to be edited for your own machine.
-- `test_links.py` works best when Clash Verge or another proxy is available for blocked domains.
-- Classification is heuristic, so you should still review the result.
-- This is a good tool for periodic cleanup, such as monthly or quarterly bookmark maintenance.
-
-## AI coding assistant support
-
-The repository includes:
-
-- `AGENTS.md`
-- `CLAUDE.md`
-
-so it fits well into Codex, Claude Code, OpenCode, and OpenClaw workflows.
+| `bookmarks_organized.md` | readable review output |
+| `report.md` | summary report |
 
 ## License
 
