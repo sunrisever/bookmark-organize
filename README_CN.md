@@ -2,90 +2,166 @@
 
 # Bookmark Organize
 
-> 浏览器书签整理工具
+> 导出浏览器书签，先在本地完成合并、去重、检查与整理，再可选地交给 ChatGPT / Claude / Gemini / Codex 等通用大模型优化分类方案。
 
-从 Chrome、Edge 和 HTML 导出文件中合并书签，结合 AI 辅助分类与确定性清洗流程，自动去重、检测死链、整理分类，输出可直接导入浏览器的书签文件。
+这个项目适合那些书签来源很多、已经积累得很乱的人。它**不是**一个必须绑定 LLM API 才能工作的仓库。默认工作流是本地、确定性的。AI 只是一个可选增强层，最适合拿来做分类方案优化、可疑项复核、或者帮助你重新梳理目录结构。
 
-## 功能
+## 这个项目本质上是做什么的
 
-- **多源合并**：Chrome + Edge + HTML 导出书签一键合并
-- **智能去重**：URL 标准化（去除追踪参数 utm_/spm 等、统一格式）
-- **死链检测**：异步并发测试链接可用性（50 并发，支持代理穿墙）
-- **智能分类**：基于域名和关键词的启发式分类（约 20 个类别）
-- **多格式输出**：HTML（可导入浏览器）+ Markdown（带状态标记）+ 统计报告
-- **AI 编程助手支持**：内置 `CLAUDE.md` 和 `AGENTS.md`，兼容 Claude Code、Codex、OpenCode、OpenClaw
+它帮你完成这几件事：
 
-## 安装
+1. 把 Chrome、Edge、HTML 导出里的书签合并起来
+2. 用 URL 标准化做去重
+3. 检查死链、可疑链接和被墙链接
+4. 重新整理分类结构
+5. 输出浏览器可以重新导入的结果
+
+所以和另外几个项目相比，它其实更偏“本地确定性整理工具”而不是“AI 主导项目”：
+
+- 核心工作由本地脚本完成
+- AI 只是额外增强层
+- 正常使用不需要 API Key
+
+## 要不要 API Key？
+
+**不需要。**
+
+这个项目完全可以在没有任何 LLM API Key 的情况下正常使用。
+
+如果你想进一步优化结果，也可以把导出的 Markdown 报告交给：
+
+- ChatGPT
+- Claude
+- Gemini
+- Codex
+- Claude Code
+- OpenCode
+
+让它帮你看分类是否合理、哪些链接可疑、目录结构还能怎么优化。但这一步是可选增强，不是前置条件。
+
+## 适合谁用
+
+如果你有这些需求，这个项目就很适合：
+
+- Chrome、Edge、旧 HTML 导出里都有书签
+- 想得到一个更干净、可重新导入浏览器的书签树
+- 不想把死链和垃圾书签一直堆着不管
+- 想要比“手工拖文件夹”更强的整理工作流
+
+## 小白使用流程
+
+### 1. 安装依赖
 
 ```bash
 pip install aiohttp
 ```
 
-## 使用流程
+只有 `test_links.py` 依赖 `aiohttp`，其他步骤大多是标准库。
 
-### Step 1：解析合并 — parse_bookmarks.py
+### 2. 合并书签
 
 ```bash
 python parse_bookmarks.py
 ```
 
-从三个来源读取书签并合并去重：
-- Chrome 书签：`%LOCALAPPDATA%\Google\Chrome\User Data\Default\Bookmarks`
-- Edge 书签：`%LOCALAPPDATA%\Microsoft\Edge\User Data\Default\Bookmarks`
-- HTML 导出：手动指定文件路径（需修改源码中的路径）
+它会从这些来源读取：
 
-**去重逻辑**：URL 标准化（去除追踪参数、小写域名、去除尾部斜杠）→ 同一 URL 保留首次出现
+- Chrome 默认配置文件
+- Edge 默认配置文件
+- 你手动指定的 HTML 导出文件
 
-**输出**：`merged_bookmarks.json`
+主要输出：
 
-### Step 2：链接检测 — test_links.py（可选但推荐）
+- `merged_bookmarks.json`
+
+### 3. 可选：检测链接
 
 ```bash
 python test_links.py
 ```
 
-异步并发测试所有书签链接的可用性。
+它会检查链接是正常、被拒绝、已失效、可疑，还是特殊协议。
 
-| 状态 | 含义 |
-|------|------|
-| `alive` | HTTP 2xx/3xx，正常 |
-| `alive_block` | HTTP 4xx，服务器在线但拒绝（反爬/需登录） |
-| `blocked_gfw` | 已知被墙域名超时 |
-| `dead` | DNS 失败 / 连接错误 / 5xx |
-| `skipped` | 特殊协议（edge:// / chrome:// 等） |
-| `suspicious` | 已知恶意域名 |
+主要输出：
 
-> 需要代理（Clash Verge 运行在 `127.0.0.1:7897`），否则被墙网站会全部超时。
+- `test_results.json`
 
-**输出**：`test_results.json`
-
-### Step 3：分类整理 — organize_bookmarks.py
+### 4. 整理书签
 
 ```bash
 python organize_bookmarks.py
 ```
 
-基于域名、书签名、文件夹等启发式规则，将书签分类到约 20 个类别。
+主要输出：
 
-**输出**：
+- `bookmarks_organized.html` —— 可重新导入浏览器
+- `bookmarks_organized.md` —— 可读性更好的 Markdown 结果
+- `report.md` —— 统计和复核报告
 
-| 文件 | 用途 |
-|------|------|
-| `bookmarks_organized.html` | NETSCAPE 格式，**可直接导入 Chrome/Edge** |
-| `bookmarks_organized.md` | Markdown 格式，含链接状态标记 |
-| `report.md` | 汇总报告：统计表、分类分布、死链列表 |
+## 推荐的 AI 复核方式
 
-## 分类类别（示例）
+这个仓库本身不依赖 AI，但在“最后复核”阶段很适合配合强模型一起用。
 
-SJTU 校园、数学、编程学习/C++、编程学习/开发、AI 工具、代理与VPN、图书与文献、壁纸与图片、在线工具、其他...
+实用流程是：
+
+1. 先跑本地脚本
+2. 打开 `bookmarks_organized.md` 或 `report.md`
+3. 把它交给 ChatGPT / Claude / Gemini / Codex / Claude Code / OpenCode
+4. 问它：
+   - 哪些分类太宽了？
+   - 哪些书签可能放错了？
+   - 哪些可疑链接应该删掉？
+   - 目录树还能怎么简化？
+
+然后你再回到本地脚本规则或人工结果里做调整。
+
+## 为什么它比“纯 AI 书签整理”更稳
+
+纯 AI 整理经常有这些问题：
+
+- 不会认真处理死链
+- 识别不出只是带追踪参数的重复 URL
+- 看起来分类挺漂亮，但导入结构不好用
+- 下次再整理时很难复现
+
+这个项目的优势在于，它先把基础层做成确定性的：
+
+- 合并
+- 标准化
+- 去重
+- 链接检测
+- 导出
+
+然后 AI 只作为附加增强层，而不是唯一依据。
+
+## 重要文件
+
+| 文件 | 作用 |
+| --- | --- |
+| `parse_bookmarks.py` | 合并并去重多个书签来源 |
+| `test_links.py` | 检测链接状态与可疑站点 |
+| `organize_bookmarks.py` | 最终分类整理与导出 |
+| `merged_bookmarks.json` | 合并后的书签数据 |
+| `test_results.json` | 链接检测结果 |
+| `bookmarks_organized.html` | 可重新导入浏览器的输出 |
+| `bookmarks_organized.md` | 可读性更好的 Markdown 输出 |
+| `report.md` | 汇总与复核报告 |
 
 ## 注意事项
 
-- `parse_bookmarks.py` 中 HTML 导入路径需要根据实际情况修改
-- `test_links.py` 需要 Clash Verge 运行（代理 `127.0.0.1:7897`）
-- 分类规则是启发式的，复杂场景可能分错，建议检查 `report.md`
-- 全部使用标准库 + aiohttp，无需 AI API
-- 适合定期执行（如每月整理一次书签）
+- `parse_bookmarks.py` 里 HTML 导入路径可能需要根据你自己的电脑修改
+- `test_links.py` 最好在 Clash Verge 或其他代理可用时运行，这样被墙站点的判断更准确
+- 分类本身仍然是启发式的，所以最好做一次复核
+- 这个工具很适合定期整理，比如每月或每季度跑一次
+
+## AI 编程助手支持
+
+仓库内包含：
+
+- `AGENTS.md`
+- `CLAUDE.md`
+
+所以很适合接入 Codex、Claude Code、OpenCode、OpenClaw 这类 agent 工作流。
 
 ## 开源协议
 
