@@ -1,6 +1,8 @@
 English | [简体中文](README_CN.md)
 
-# Bookmark Organize — AI-Assisted Browser Bookmark Organizer
+# Bookmark Organize
+
+> AI-assisted browser bookmark organizer
 
 Merge bookmarks from Chrome, Edge, and HTML exports. Use AI-assisted classification together with deterministic cleanup to deduplicate, check dead links, organize categories, and output browser-importable bookmark files.
 
